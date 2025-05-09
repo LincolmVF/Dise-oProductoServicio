@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Peticiones por Voz</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #EFFFF9;
+            --secondary-color: #2A9D8F;
+            --accent-color: #264653;
+            --text-color: #333333;
+            --light-accent: #E9C46A;
+            --danger-color: #E76F51;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            padding-top: 20px;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .header-icon {
+            font-size: 48px;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+
+        .voice-indicator {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 30px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background-color: var(--primary-color);
+            transition: all 0.3s;
+        }
+
+        .voice-indicator.listening {
+            background-color: rgba(42, 157, 143, 0.2);
+        }
+
+        .voice-indicator.recording {
+            background-color: rgba(231, 111, 81, 0.2);
+        }
+
+        .voice-indicator-inner {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            background-color: white;
+            color: var(--secondary-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .voice-indicator.listening .voice-indicator-inner {
+            color: var(--secondary-color);
+        }
+
+        .voice-indicator.recording .voice-indicator-inner {
+            color: var(--danger-color);
+        }
+
+        .voice-waves {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .voice-indicator.active .voice-waves {
+            animation: pulse-waves 2s infinite;
+            opacity: 1;
+        }
+
+        @keyframes pulse-waves {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            70% {
+                transform: scale(1.1);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        .status-indicator {
+            text-align: center;
+            margin: 15px 0;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 10px;
+            border-radius: 30px;
+            background-color: var(--primary-color);
+            color: var(--accent-color);
+        }
+
+        .transcript-container {
+            margin-top: 25px;
+            padding: 20px;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            min-height: 150px;
+            background-color: white;
+        }
+
+        .transcript-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+
+        .transcript-header i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .commands-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: var(--primary-color);
+        }
+
+        .commands-title {
+            font-weight: bold;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .commands-title i {
+            margin-right: 10px;
+        }
+
+        .commands-list {
+            list-style-type: none;
+            padding-left: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 0;
+        }
+
+        .command-item {
+            background-color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .command-item i {
+            margin-right: 8px;
+            color: var(--secondary-color);
+        }
+
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-custom {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-custom i {
+            margin-right: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #238a7e;
+            border-color: #238a7e;
+        }
+
+        .btn-info {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #1d3a46;
+            border-color: #1d3a46;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .accessibility-features {
+            margin-top: 30px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: var(--primary-color);
+        }
+
+        .accessibility-title {
+            font-weight: bold;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .accessibility-title i {
+            margin-right: 10px;
+        }
+
+        .accessibility-list {
+            list-style-type: none;
+            padding-left: 15px;
+            margin-top: 10px;
+        }
+
+        .accessibility-list li {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .accessibility-list li i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--accent-color);
+        }
+
+        .alert-float {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-radius: 10px;
+            animation: slideIn 0.5s forwards;
+        }
+
+        .alert-float i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .recognized-command {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(38, 70, 83, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .recognized-command.show {
+            display: block;
+            animation: fadeIn 0.3s forwards, fadeOut 0.3s forwards 2s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="main-container">
+        <div class="header-section">
+            <div class="header-icon">
+                <i class="fas fa-pills"></i>
+            </div>
+            <h1 class="mb-3">Sistema de Peticiones de Medicamentos</h1>
+            <p class="lead">Asistente por voz para personas con discapacidad visual</p>
+        </div>
+
+        <div class="text-center">
+            <p><i class="fas fa-microphone-alt me-2"></i>El sistema está escuchando. Diga "Iniciar grabación" para comenzar.</p>
+        </div>
+
+        <div id="voiceIndicator" class="voice-indicator listening active">
+            <div class="voice-waves"></div>
+            <div class="voice-indicator-inner">
+                <i class="fas fa-microphone-alt"></i>
+            </div>
+        </div>
+
+        <div id="statusIndicator" class="status-indicator">
+            <i class="fas fa-info-circle me-2"></i>Escuchando comandos...
+        </div>
+
+        <div class="transcript-container">
+            <div class="transcript-header">
+                <i class="fas fa-comment-medical"></i>
+                <h5 class="mb-0">Su petición:</h5>
+            </div>
+            <div id="transcript" class="mt-3"></div>
+        </div>
+
+        <div class="commands-container">
+            <div class="commands-title">
+                <i class="fas fa-magic"></i>Comandos de voz disponibles
+            </div>
+            <ul class="commands-list">
+                <li class="command-item"><i class="fas fa-play"></i>"Iniciar grabación"</li>
+                <li class="command-item"><i class="fas fa-stop"></i>"Detener grabación"</li>
+                <li class="command-item"><i class="fas fa-paper-plane"></i>"Enviar petición"</li>
+                <li class="command-item"><i class="fas fa-eraser"></i>"Limpiar petición"</li>
+                <li class="command-item"><i class="fas fa-list"></i>"Ver peticiones"</li>
+            </ul>
+        </div>
+
+        <div class="actions">
+            <button id="btnClear" class="btn btn-secondary btn-custom">
+                <i class="fas fa-eraser"></i>Limpiar
+            </button>
+            <button id="btnSend" class="btn btn-primary btn-custom">
+                <i class="fas fa-paper-plane"></i>Enviar Petición
+            </button>
+            <a href="/peticiones" class="btn btn-info btn-custom">
+                <i class="fas fa-list-ul"></i>Ver Peticiones
+            </a>
+        </div>
+
+        <div class="accessibility-features">
+            <div class="accessibility-title">
+                <i class="fas fa-universal-access"></i>Características de accesibilidad
+            </div>
+            <ul class="accessibility-list">
+                <li><i class="fas fa-check-circle"></i>Control completo por voz</li>
+                <li><i class="fas fa-check-circle"></i>Retroalimentación auditiva</li>
+                <li><i class="fas fa-check-circle"></i>Reconocimiento de comandos específicos</li>
+                <li><i class="fas fa-check-circle"></i>Interfaz simplificada y fácil de usar</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p><i class="fas fa-heart"></i> Desarrollado para mejorar la accesibilidad en servicios de salud</p>
+        </div>
+    </div>
+</div>
+
+<div id="recognizedCommand" class="recognized-command">
+    Comando reconocido: <span id="commandText"></span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const voiceIndicator = document.getElementById('voiceIndicator');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const transcript = document.getElementById('transcript');
+        const btnClear = document.getElementById('btnClear');
+        const btnSend = document.getElementById('btnSend');
+        const recognizedCommand = document.getElementById('recognizedCommand');
+        const commandText = document.getElementById('commandText');
+
+        let recognition = null;
+        let isListening = true;
+        let isRecording = false;
+        let synth = window.speechSynthesis;
+        let currentText = '';
+
+        // Verificar si el navegador soporta la API de reconocimiento de voz
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            // Crear una única instancia de reconocimiento
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'es-ES';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            // Configurar eventos de reconocimiento
+            recognition.onresult = function(event) {
+                // Procesar resultados según el modo actual
+                if (isRecording) {
+                    handleRecordingResults(event);
+                } else {
+                    handleCommandResults(event);
+                }
+            };
+
+            recognition.onend = function() {
+                console.log("Reconocimiento finalizado, reiniciando...");
+                // Reiniciar reconocimiento automáticamente
+                setTimeout(() => {
+                    try {
+                        recognition.start();
+                        console.log("Reconocimiento reiniciado");
+                    } catch (error) {
+                        console.error("Error al reiniciar reconocimiento:", error);
+                    }
+                }, 500);
+            };
+
+            recognition.onerror = function(event) {
+                console.error("Error en reconocimiento:", event.error);
+                // Reintentar si no es un error de permisos
+                if (event.error !== 'not-allowed') {
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                        } catch (error) {
+                            console.error("Error al reiniciar después de error:", error);
+                        }
+                    }, 1000);
+                }
+            };
+
+            // Iniciar reconocimiento
+            try {
+                recognition.start();
+                console.log("Reconocimiento iniciado");
+            } catch (error) {
+                console.error("Error al iniciar reconocimiento:", error);
+            }
+
+        } else {
+            alert('Tu navegador no soporta la API de reconocimiento de voz. Por favor, utiliza Chrome, Edge o Safari.');
+            statusIndicator.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Reconocimiento de voz no soportado';
+            statusIndicator.style.color = 'red';
+            voiceIndicator.classList.remove('active', 'listening');
+        }
+
+        // Función para manejar resultados en modo de grabación
+        function handleRecordingResults(event) {
+            let interimTranscript = '';
+
+            // Procesar solo el último resultado para evitar duplicaciones
+            const lastResult = event.results[event.results.length - 1];
+
+            // Verificar si el último resultado contiene comandos para detener
+            const lastResultText = lastResult[0].transcript.trim().toLowerCase();
+            if (lastResultText.includes("detener") ||
+                lastResultText.includes("parar") ||
+                lastResultText.includes("terminar") ||
+                lastResultText.includes("stop")) {
+
+                console.log("Comando de detención detectado durante grabación");
+                stopRecording();
+                return;
+            }
+
+            // Procesar resultados normales de grabación
+            if (lastResult.isFinal) {
+                currentText += lastResult[0].transcript + ' ';
+            } else {
+                interimTranscript = lastResult[0].transcript;
+            }
+
+            // Actualizar el texto mostrado
+            transcript.innerHTML = currentText + '<span style="color: gray;">' + interimTranscript + '</span>';
+        }
+
+        // Función para manejar resultados en modo de comandos
+        function handleCommandResults(event) {
+            // Obtener solo el último resultado para evitar procesamiento múltiple
+            const lastResult = event.results[event.results.length - 1];
+
+            // Solo procesar si es un resultado final
+            if (lastResult.isFinal) {
+                const command = lastResult[0].transcript.trim().toLowerCase();
+                console.log("Comando reconocido:", command);
+
+                // Mostrar comando reconocido
+                showRecognizedCommand(command);
+
+                // Procesar comandos
+                if (command.includes("iniciar") || command.includes("comenzar") || command.includes("empezar")) {
+                    if (!isRecording) {
+                        startRecording();
+                    }
+                } else if (command.includes("enviar")) {
+                    sendPetition();
+                } else if (command.includes("limpiar") || command.includes("borrar")) {
+                    clearTranscript();
+                } else if (command.includes("ver peticiones") || command.includes("mostrar peticiones") ||
+                    command.includes("lista") || command.includes("ir a peticiones")) {
+                    window.location.href = "/peticiones";
+                }
+            }
+        }
+
+        // Función para iniciar grabación
+        function startRecording() {
+            console.log("Iniciando grabación");
+
+            // Limpiar el texto actual si está vacío
+            if (!currentText.trim()) {
+                currentText = '';
+                transcript.innerHTML = '';
+            }
+
+            // Cambiar al modo de grabación
+            isRecording = true;
+
+            // Actualizar UI
+            voiceIndicator.classList.add('recording', 'active');
+            voiceIndicator.classList.remove('listening');
+            voiceIndicator.querySelector('.voice-indicator-inner i').className = 'fas fa-microphone';
+            statusIndicator.innerHTML = '<i class="fas fa-microphone-alt me-2"></i>Grabando petición... (Diga "detener" para finalizar)';
+            statusIndicator.style.color = '#E76F51';
+
+            // Hablar mensaje
+            speak("Grabando su petición. Diga detener cuando termine.");
+        }
+
+        // Función para detener grabación
+        function stopRecording() {
+            console.log("Deteniendo grabación");
+
+            // Cambiar al modo de escucha de comandos
+            isRecording = false;
+
+            // Actualizar UI
+            voiceIndicator.classList.add('listening', 'active');
+            voiceIndicator.classList.remove('recording');
+            voiceIndicator.querySelector('.voice-indicator-inner i').className = 'fas fa-microphone-alt';
+            statusIndicator.innerHTML = '<i class="fas fa-info-circle me-2"></i>Grabación detenida. Diga "enviar petición" para enviar.';
+            statusIndicator.style.color = '#264653';
+
+            // Hablar mensaje
+            speak("Grabación detenida. Diga enviar petición para enviar.");
+        }
+
+        // Función para enviar petición
+        function sendPetition() {
+            const contenido = currentText.trim();
+            if (contenido) {
+                // Detener grabación si está activa
+                if (isRecording) {
+                    isRecording = false;
+                }
+
+                // Actualizar UI
+                statusIndicator.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enviando petición...';
+                voiceIndicator.classList.remove('recording');
+                voiceIndicator.classList.add('listening');
+
+                // Enviar la petición al servidor
+                fetch('/guardar-peticion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'contenido=' + encodeURIComponent(contenido)
+                })
+                    .then(response => response.text())
+                    .then(data => {
+                        // Mostrar mensaje de éxito
+                        mostrarNotificacion(data, 'success');
+
+                        // Limpiar transcript
+                        currentText = '';
+                        transcript.innerHTML = '';
+
+                        // Actualizar UI
+                        statusIndicator.innerHTML = '<i class="fas fa-check-circle me-2"></i>Petición enviada con éxito';
+                        statusIndicator.style.color = '#2A9D8F';
+
+                        // Hablar mensaje
+                        speak("Petición enviada con éxito. ¿Desea realizar otra petición?");
+
+                        // Volver al modo de escucha
+                        setTimeout(() => {
+                            statusIndicator.innerHTML = '<i class="fas fa-info-circle me-2"></i>Escuchando comandos...';
+                            statusIndicator.style.color = '#264653';
+                        }, 3000);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+
+                        // Mostrar error
+                        mostrarNotificacion('Error al enviar la petición', 'danger');
+
+                        // Actualizar UI
+                        statusIndicator.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Error al enviar la petición';
+                        statusIndicator.style.color = 'red';
+
+                        // Hablar mensaje
+                        speak("Error al enviar la petición. Por favor, inténtelo de nuevo.");
+                    });
+            } else {
+                speak("No hay contenido para enviar. Por favor, grabe su petición primero.");
+                mostrarNotificacion('No hay contenido para enviar. Por favor, grabe su petición primero.', 'warning');
+            }
+        }
+
+        // Función para limpiar transcript
+        function clearTranscript() {
+            currentText = '';
+            transcript.innerHTML = '';
+            speak("Petición limpiada.");
+            mostrarNotificacion('Petición limpiada', 'info');
+        }
+
+        // Función para mostrar comando reconocido
+        function showRecognizedCommand(command) {
+            commandText.textContent = command;
+            recognizedCommand.classList.add('show');
+
+            setTimeout(() => {
+                recognizedCommand.classList.remove('show');
+            }, 2500);
+        }
+
+        // Función para hablar mensajes
+        function speak(text) {
+            // Cancelar cualquier síntesis de voz en curso
+            synth.cancel();
+
+            // Crear nueva instancia de síntesis
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-ES';
+            utterance.volume = 1;
+            utterance.rate = 1;
+            utterance.pitch = 1;
+
+            // Hablar
+            synth.speak(utterance);
+        }
+
+        // Función para mostrar notificaciones
+        function mostrarNotificacion(mensaje, tipo) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${tipo} alert-float`;
+
+            let icon = 'info-circle';
+            if (tipo === 'success') icon = 'check-circle';
+            if (tipo === 'danger') icon = 'exclamation-circle';
+            if (tipo === 'warning') icon = 'exclamation-triangle';
+
+            alertDiv.innerHTML = `<i class="fas fa-${icon}"></i>${mensaje}`;
+            document.body.appendChild(alertDiv);
+
+            // Eliminar la notificación después de 3 segundos
+            setTimeout(() => {
+                alertDiv.style.animation = 'slideOut 0.5s forwards';
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 500);
+            }, 3000);
+        }
+
+        // Eventos para botones (mantener funcionalidad manual)
+        btnClear.addEventListener('click', function() {
+            clearTranscript();
+            if (isRecording) {
+                stopRecording();
+            }
+        });
+
+        btnSend.addEventListener('click', function() {
+            sendPetition();
+        });
+
+        // Añadir instrucciones por voz al cargar la página
+        setTimeout(() => {
+            speak("Bienvenido al sistema de peticiones de medicamentos por voz. El sistema está escuchando sus comandos. Diga 'Iniciar grabación' para comenzar a grabar su petición.");
+        }, 1000);
+
+        // Botón de emergencia para detener grabación (presionar Escape)
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                if (isRecording) {
+                    stopRecording();
+                    mostrarNotificacion('Grabación detenida con tecla Escape', 'info');
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

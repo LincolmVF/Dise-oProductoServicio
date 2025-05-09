@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Peticiones</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #EFFFF9;
+            --secondary-color: #2A9D8F;
+            --accent-color: #264653;
+            --text-color: #333333;
+            --light-accent: #E9C46A;
+            --danger-color: #E76F51;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+
+        .main-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-icon {
+            font-size: 36px;
+            color: var(--secondary-color);
+            margin-right: 15px;
+        }
+
+        .btn-custom {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-custom i {
+            margin-right: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #238a7e;
+            border-color: #238a7e;
+        }
+
+        .table-container {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .table th {
+            font-weight: 600;
+            padding: 15px;
+        }
+
+        .table td {
+            padding: 15px;
+            vertical-align: middle;
+        }
+
+        .table tr:nth-child(even) {
+            background-color: var(--primary-color);
+        }
+
+        .status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .status-badge i {
+            margin-right: 5px;
+        }
+
+        .status-pendiente {
+            background-color: var(--light-accent);
+            color: #212529;
+        }
+
+        .status-procesado {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .status-rechazado {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: var(--accent-color);
+            opacity: 0.5;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p {
+            font-size: 18px;
+            color: #6c757d;
+        }
+
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--primary-color);
+            border-radius: 10px;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 300px;
+        }
+
+        .search-container input {
+            padding-left: 40px;
+            border-radius: 30px;
+            border: 1px solid #ced4da;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 15px;
+            top: 10px;
+            color: #6c757d;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.9em;
+            background-color: white;
+            border: 1px solid #ced4da;
+            color: var(--text-color);
+        }
+
+        .filter-btn.active {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination {
+            --bs-pagination-active-bg: var(--secondary-color);
+            --bs-pagination-active-border-color: var(--secondary-color);
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--accent-color);
+        }
+
+        .accessibility-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .accessibility-button:hover {
+            transform: scale(1.1);
+        }
+
+        .content-id {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-delete {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+            transform: scale(1.05);
+        }
+
+        .actions-column {
+            width: 80px;
+            text-align: center;
+        }
+
+        .modal-confirm {
+            color: #636363;
+        }
+
+        .modal-confirm .modal-content {
+            padding: 20px;
+            border-radius: 15px;
+            border: none;
+        }
+
+        .modal-confirm .modal-header {
+            border-bottom: none;
+            position: relative;
+            justify-content: center;
+            padding-top: 30px;
+        }
+
+        .modal-confirm .modal-title {
+            text-align: center;
+            font-size: 26px;
+            margin: 0 0 10px;
+        }
+
+        .modal-confirm .modal-body {
+            text-align: center;
+            padding: 20px 0 30px;
+        }
+
+        .modal-confirm .icon-box {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            z-index: 9;
+            text-align: center;
+            border: 3px solid var(--danger-color);
+        }
+
+        .modal-confirm .icon-box i {
+            color: var(--danger-color);
+            font-size: 46px;
+            display: inline-block;
+            margin-top: 13px;
+        }
+
+        .modal-confirm .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .modal-confirm .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #c82333;
+        }
+
+        .modal-confirm .btn {
+            min-width: 120px;
+            border-radius: 30px;
+            font-weight: bold;
+        }
+
+        .modal-confirm .modal-footer {
+            border: none;
+            text-align: center;
+            border-radius: 5px;
+            font-size: 13px;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .alert-float {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-radius: 10px;
+            animation: slideIn 0.5s forwards;
+        }
+
+        .alert-float i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .filters {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .search-container {
+                max-width: 100%;
+            }
+
+            .content-id {
+                max-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="main-container">
+        <div class="header-section">
+            <div class="header-title">
+                <div class="header-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h1>Lista de Peticiones de Medicamentos</h1>
+            </div>
+            <a href="/" class="btn btn-primary btn-custom">
+                <i class="fas fa-plus-circle"></i>Nueva Petición
+            </a>
+        </div>
+
+        <div class="filters">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-control" id="searchInput" placeholder="Buscar petición...">
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="pendiente">Pendientes</button>
+                <button class="filter-btn" data-filter="procesado">Procesados</button>
+                <button class="filter-btn" data-filter="rechazado">Rechazados</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover" id="peticionesTable">
+                    <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag me-2"></i>ID</th>
+                        <th><i class="fas fa-comment-medical me-2"></i>Contenido</th>
+                        <th><i class="fas fa-calendar-alt me-2"></i>Fecha de Creación</th>
+                        <th><i class="fas fa-tasks me-2"></i>Estado</th>
+                        <th class="actions-column"><i class="fas fa-cogs me-2"></i>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="peticion : ${peticiones}" th:data-estado="${#strings.toLowerCase(peticion.estado)}" th:data-id="${peticion.id}">
+                        <td th:text="${peticion.id}"></td>
+                        <td class="content-id" th:text="${peticion.contenido}"></td>
+                        <td th:text="${#temporals.format(peticion.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                                    <span th:if="${peticion.estado == 'Pendiente'}" class="status-badge status-pendiente">
+                                        <i class="fas fa-clock"></i>
+                                        <span th:text="${peticion.estado}"></span>
+                                    </span>
+                            <span th:if="${peticion.estado == 'Procesado'}" class="status-badge status-procesado">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span th:text="${peticion.estado}"></span>
+                                    </span>
+                            <span th:if="${peticion.estado == 'Rechazado'}" class="status-badge status-rechazado">
+                                        <i class="fas fa-times-circle"></i>
+                                        <span th:text="${peticion.estado}"></span>
+                                    </span>
+                        </td>
+                        <td class="actions-column">
+                            <button class="btn-delete" th:data-id="${peticion.id}" onclick="confirmarEliminar(this.getAttribute('data-id'))">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(peticiones)}" class="empty-row">
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No hay peticiones registradas</p>
+                                <a href="/" class="btn btn-primary btn-custom mt-3">
+                                    <i class="fas fa-plus-circle"></i>Crear nueva petición
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="pagination-container" th:if="${not #lists.isEmpty(peticiones)}">
+            <nav aria-label="Navegación de páginas">
+                <ul class="pagination">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="footer">
+            <p><i class="fas fa-heart"></i> Desarrollado para mejorar la accesibilidad en servicios de salud</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-confirm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="icon-box">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <h5 class="modal-title" id="deleteModalLabel">¿Está seguro?</h5>
+            </div>
+            <div class="modal-body">
+                <p>¿Realmente desea eliminar esta petición? Este proceso no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmDelete">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="accessibility-button" id="accessibilityBtn" title="Opciones de accesibilidad">
+    <i class="fas fa-universal-access"></i>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtrado de peticiones
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const searchInput = document.getElementById('searchInput');
+        const peticionesRows = document.querySelectorAll('#peticionesTable tbody tr:not(.empty-row)');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Actualizar botones activos
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                // Filtrar por estado
+                const filter = this.getAttribute('data-filter');
+                filterTable(filter, searchInput.value);
+            });
+        });
+
+        searchInput.addEventListener('input', function() {
+            const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+            filterTable(activeFilter, this.value);
+        });
+
+        function filterTable(statusFilter, searchText) {
+            peticionesRows.forEach(row => {
+                const estado = row.getAttribute('data-estado');
+                const contenido = row.querySelector('.content-id').textContent.toLowerCase();
+
+                const matchesStatus = statusFilter === 'all' || estado === statusFilter;
+                const matchesSearch = searchText === '' || contenido.includes(searchText.toLowerCase());
+
+                if (matchesStatus && matchesSearch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Botón de accesibilidad
+        const accessibilityBtn = document.getElementById('accessibilityBtn');
+        accessibilityBtn.addEventListener('click', function() {
+            // Aquí se podría implementar un modal con opciones de accesibilidad
+            alert('Opciones de accesibilidad:\n- Aumentar tamaño de texto\n- Alto contraste\n- Lector de pantalla\n\nEstas funciones estarán disponibles próximamente.');
+        });
+
+        // Añadir tooltips a los elementos de la tabla para mejor accesibilidad
+        const rows = document.querySelectorAll('#peticionesTable tbody tr:not(.empty-row)');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length > 0) {
+                const id = cells[0].textContent;
+                const contenido = cells[1].textContent;
+                const fecha = cells[2].textContent;
+                const estado = cells[3].textContent.trim();
+
+                row.setAttribute('title', `Petición ${id}: ${contenido}. Creada el ${fecha}. Estado: ${estado}`);
+            }
+        });
+    });
+
+    // Variables para el modal de eliminación
+    let deleteModal;
+    let peticionIdToDelete;
+
+    // Inicializar el modal cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+        // Configurar el botón de confirmación
+        document.getElementById('btnConfirmDelete').addEventListener('click', function() {
+            eliminarPeticion(peticionIdToDelete);
+        });
+    });
+
+    // Función para mostrar el modal de confirmación
+    function confirmarEliminar(id) {
+        peticionIdToDelete = id;
+        deleteModal.show();
+    }
+
+    // Función para eliminar la petición
+    function eliminarPeticion(id) {
+        fetch('/eliminar-peticion/' + id, {
+            method: 'POST'
+        })
+            .then(response => response.text())
+            .then(data => {
+                // Cerrar el modal
+                deleteModal.hide();
+
+                // Mostrar notificación
+                mostrarNotificacion(data, 'success');
+
+                // Eliminar la fila de la tabla
+                const row = document.querySelector(`tr[data-id="${id}"]`);
+                if (row) {
+                    row.style.animation = 'slideOut 0.5s forwards';
+                    setTimeout(() => {
+                        row.remove();
+
+                        // Verificar si la tabla está vacía
+                        const rows = document.querySelectorAll('#peticionesTable tbody tr:not(.empty-row)');
+                        if (rows.length === 0) {
+                            // Crear fila de estado vacío
+                            const tbody = document.querySelector('#peticionesTable tbody');
+                            const emptyRow = document.createElement('tr');
+                            emptyRow.className = 'empty-row';
+                            emptyRow.innerHTML = `
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-inbox"></i>
+                                        <p>No hay peticiones registradas</p>
+                                        <a href="/" class="btn btn-primary btn-custom mt-3">
+                                            <i class="fas fa-plus-circle"></i>Crear nueva petición
+                                        </a>
+                                    </div>
+                                </td>
+                            `;
+                            tbody.appendChild(emptyRow);
+                        }
+                    }, 500);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                deleteModal.hide();
+                mostrarNotificacion('Error al eliminar la petición', 'danger');
+            });
+    }
+
+    // Función para mostrar notificaciones
+    function mostrarNotificacion(mensaje, tipo) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo} alert-float`;
+
+        let icon = 'info-circle';
+        if (tipo === 'success') icon = 'check-circle';
+        if (tipo === 'danger') icon = 'exclamation-circle';
+        if (tipo === 'warning') icon = 'exclamation-triangle';
+
+        alertDiv.innerHTML = `<i class="fas fa-${icon}"></i>${mensaje}`;
+        document.body.appendChild(alertDiv);
+
+        // Eliminar la notificación después de 3 segundos
+        setTimeout(() => {
+            alertDiv.style.animation = 'slideOut 0.5s forwards';
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 500);
+        }, 3000);
+    }
+</script>
+</body>
+</html>
