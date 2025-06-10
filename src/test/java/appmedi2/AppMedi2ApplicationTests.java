@@ -1,13 +1,13 @@
-package medicamento.medicamentovoz;
+package appmedi2;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MedicamentoVozApplicationTests {
+class AppMedi2ApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

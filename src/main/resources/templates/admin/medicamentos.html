@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Medicamentos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --primary-color: #1e40af;        /* Azul principal */
+      --secondary-color: #3b82f6;      /* Azul secundario */
+      --success-color: #059669;        /* Verde */
+      --neutral-color: #6b7280;        /* Gris medio */
+      --light-color: #f8fafc;          /* Gris muy claro */
+      --dark-color: #1e293b;           /* Gris oscuro */
+      --border-color: #e2e8f0;         /* Gris claro para bordes */
+      --text-muted: #64748b;           /* Gris para texto secundario */
+      --warning-color: #d97706;        /* Naranja para advertencias */
+      --danger-color: #dc2626;         /* Rojo para errores */
+    }
+
+    body {
+      background-color: #f1f5f9;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+    }
+
+    /* Navegación */
+    .admin-nav {
+      background: var(--primary-color) !important;
+      padding: 15px 0;
+      border-bottom: 3px solid var(--secondary-color);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .admin-nav .navbar-brand,
+    .admin-nav .nav-link {
+      color: white !important;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .admin-nav .nav-link:hover {
+      color: #e2e8f0 !important;
+      background-color: var(--secondary-color);
+      border-radius: 6px;
+      padding: 8px 12px !important;
+      text-decoration: none;
+    }
+
+    .admin-nav .nav-link.active {
+      background-color: var(--success-color);
+      border-radius: 6px;
+      padding: 8px 12px !important;
+    }
+
+    /* Títulos */
+    h1, h5, h6 {
+      color: var(--dark-color);
+      font-weight: 700;
+    }
+
+    /* Tarjetas */
+    .card {
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    .card-header {
+      background: var(--primary-color) !important;
+      color: white;
+      border-radius: 12px 12px 0 0 !important;
+      font-weight: 600;
+      border-bottom: 2px solid var(--secondary-color) !important;
+    }
+
+    .card-header h5 {
+      color: white;
+      margin: 0;
+    }
+
+    /* Botones */
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+      border-color: var(--secondary-color);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline-primary {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+      font-weight: 500;
+      border-radius: 8px;
+    }
+
+    .btn-outline-primary:hover {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    .btn-outline-secondary {
+      border-color: var(--neutral-color);
+      color: var(--neutral-color);
+      font-weight: 500;
+      border-radius: 8px;
+    }
+
+    .btn-outline-secondary:hover {
+      background-color: var(--neutral-color);
+      border-color: var(--neutral-color);
+    }
+
+    .btn-outline-danger {
+      border-color: var(--danger-color);
+      color: var(--danger-color);
+      font-weight: 500;
+      border-radius: 8px;
+    }
+
+    .btn-outline-danger:hover {
+      background-color: var(--danger-color);
+      border-color: var(--danger-color);
+    }
+
+    .btn-outline-light {
+      border-color: rgba(255,255,255,0.5);
+      color: white;
+    }
+
+    .btn-outline-light:hover {
+      background-color: rgba(255,255,255,0.2);
+      border-color: white;
+      color: white;
+    }
+
+    /* Formularios */
+    .form-control, .form-select {
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.25);
+    }
+
+    .form-label {
+      color: var(--dark-color);
+      font-weight: 500;
+    }
+
+    .form-text {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    /* Tabla */
+    .table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .table th {
+      background-color: var(--light-color);
+      color: var(--dark-color);
+      font-weight: 600;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .table td {
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+    /* Badges de stock */
+    .badge-stock {
+      font-size: 0.9em;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .bg-success {
+      background-color: var(--success-color) !important;
+    }
+
+    .bg-warning {
+      background-color: var(--warning-color) !important;
+    }
+
+    .bg-danger {
+      background-color: var(--danger-color) !important;
+    }
+
+    /* Alertas */
+    .alert {
+      border-radius: 12px;
+      border: 2px solid;
+    }
+
+    .alert-success {
+      background-color: #f0fdf4;
+      border-color: var(--success-color);
+      color: #065f46;
+    }
+
+    .alert-danger {
+      background-color: #fef2f2;
+      border-color: var(--danger-color);
+      color: #991b1b;
+    }
+
+    /* Grupo de botones */
+    .btn-group .btn {
+      margin-right: 5px;
+    }
+
+    .btn-group .btn:last-child {
+      margin-right: 0;
+    }
+
+    /* Input group */
+    .input-group .form-control {
+      border-right: none;
+    }
+
+    .input-group .btn {
+      border-left: none;
+    }
+
+    /* Texto muted personalizado */
+    .text-muted {
+      color: var(--text-muted) !important;
+    }
+
+    .small {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* Lista de ayuda */
+    .card-body ul {
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .card-body ul li {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+      color: var(--text-muted);
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .card-body ul li:before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--primary-color);
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+
+    .card-body ul li:last-child {
+      border-bottom: none;
+    }
+
+    .card-body h6 {
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    /* Mejoras de accesibilidad */
+    .btn:focus {
+      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.3);
+    }
+
+    .table-responsive {
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .admin-nav .nav-link:hover {
+        padding: 8px !important;
+      }
+
+      .card-header {
+        padding: 15px;
+      }
+
+      .btn-sm {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+      }
+
+      .input-group {
+        max-width: 100% !important;
+      }
+    }
+
+    /* Animaciones suaves */
+    .card, .btn, .form-control, .form-select {
+      transition: all 0.3s ease;
+    }
+
+    /* Hover effects para las filas de la tabla */
+    .table tbody tr {
+      transition: background-color 0.2s ease;
+    }
+
+    /* Estilo para campos requeridos */
+    .form-label:after {
+      content: "";
+    }
+
+    .form-label:has(+ input[required]):after,
+    .form-label:has(+ textarea[required]):after {
+      content: " *";
+      color: var(--danger-color);
+    }
+  </style>
+</head>
+<body>
+<div class="admin-nav">
+  <div class="container">
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/admin/dashboard">🏥 Panel de Administración</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="/admin/medicamentos">💊 Medicamentos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/historial">📋 Historial</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/dashboard">📊 Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/">🏠 Volver a Inicio</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </div>
+</div>
+
+<div class="container mt-4">
+  <h1 class="mb-4">💊 Gestión de Medicamentos</h1>
+
+  <!-- Mensajes de alerta -->
+  <div th:if="${mensaje}" th:class="'alert alert-' + (${tipoMensaje == 'success'} ? 'success' : 'danger') + ' alert-dismissible fade show'" role="alert">
+    <span th:text="${mensaje}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+  <div class="row">
+    <!-- Formulario de medicamento -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0" th:text="${medicamento.id != null ? 'Editar Medicamento' : 'Nuevo Medicamento'}">Nuevo Medicamento</h5>
+        </div>
+        <div class="card-body">
+          <form th:action="@{/admin/medicamentos}" th:object="${medicamento}" method="post">
+            <input type="hidden" th:field="*{id}" />
+
+            <div class="mb-3">
+              <label for="nombre" class="form-label">Nombre del Medicamento</label>
+              <input type="text" class="form-control" id="nombre" th:field="*{nombre}" required
+                     placeholder="Ej: Paracetamol">
+            </div>
+
+            <div class="mb-3">
+              <label for="descripcion" class="form-label">Descripción</label>
+              <textarea class="form-control" id="descripcion" th:field="*{descripcion}" rows="3"
+                        placeholder="Descripción detallada del medicamento"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="stock" class="form-label">Stock Disponible</label>
+              <input type="number" class="form-control" id="stock" th:field="*{stock}" min="0" required
+                     placeholder="Cantidad disponible">
+            </div>
+
+            <div class="mb-3">
+              <label for="nombresAlternativos" class="form-label">Nombres Alternativos</label>
+              <input type="text" class="form-control" id="nombresAlternativos" th:field="*{nombresAlternativos}"
+                     placeholder="Ej: acetaminofén, analgésico">
+              <div class="form-text">Ingrese nombres alternativos separados por comas para mejorar el reconocimiento de voz.</div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Guardar Medicamento
+              </button>
+              <a href="/admin/medicamentos" class="btn btn-outline-secondary" th:if="${medicamento.id != null}">
+                <i class="bi bi-x-circle"></i> Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header">
+          <h5 class="mb-0">Ayuda</h5>
+        </div>
+        <div class="card-body">
+          <h6>Consejos para nombres alternativos:</h6>
+          <ul>
+            <li>Incluya nombres comerciales comunes</li>
+            <li>Agregue variaciones de pronunciación</li>
+            <li>Considere términos genéricos relacionados</li>
+            <li>Incluya abreviaturas comunes</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de medicamentos -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Lista de Medicamentos</h5>
+          <div class="input-group" style="max-width: 300px;">
+            <input type="text" id="searchMedicamento" class="form-control" placeholder="Buscar medicamento...">
+            <button class="btn btn-outline-light" type="button">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover" id="tablaMedicamentos">
+              <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="med : ${medicamentos}">
+                <td th:text="${med.id}"></td>
+                <td>
+                  <strong th:text="${med.nombre}"></strong>
+                  <div class="small text-muted" th:if="${med.nombresAlternativos != null && !med.nombresAlternativos.isEmpty()}">
+                    <em th:text="${med.nombresAlternativos}"></em>
+                  </div>
+                </td>
+                <td th:text="${med.descripcion ?: '-'}"></td>
+                <td>
+                  <span th:class="'badge ' + (${med.stock > 10} ? 'bg-success' : (${med.stock > 5} ? 'bg-warning' : 'bg-danger')) + ' badge-stock'"
+                        th:text="${med.stock}"></span>
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <a th:href="@{/admin/medicamentos/{id}(id=${med.id})}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a th:href="@{/admin/medicamentos/eliminar/{id}(id=${med.id})}"
+                       class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('¿Está seguro de eliminar este medicamento? Esta acción no se puede deshacer.')">
+                      <i class="bi bi-trash"></i> Eliminar
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(medicamentos)}">
+                <td colspan="5" class="text-center">No hay medicamentos registrados</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Búsqueda en tabla de medicamentos
+  document.getElementById('searchMedicamento').addEventListener('keyup', function() {
+    const searchText = this.value.toLowerCase();
+    const table = document.getElementById('tablaMedicamentos');
+    const rows = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (row.cells.length > 1) {
+        const nombre = row.cells[1].textContent.toLowerCase();
+        const descripcion = row.cells[2].textContent.toLowerCase();
+
+        if (nombre.includes(searchText) || descripcion.includes(searchText)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>

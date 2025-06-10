@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historial de Solicitudes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --primary-color: #1e40af;        /* Azul principal */
+      --secondary-color: #3b82f6;      /* Azul secundario */
+      --success-color: #059669;        /* Verde */
+      --neutral-color: #6b7280;        /* Gris medio */
+      --light-color: #f8fafc;          /* Gris muy claro */
+      --dark-color: #1e293b;           /* Gris oscuro */
+      --border-color: #e2e8f0;         /* Gris claro para bordes */
+      --text-muted: #64748b;           /* Gris para texto secundario */
+      --warning-color: #d97706;        /* Naranja para advertencias */
+      --danger-color: #dc2626;         /* Rojo para errores */
+    }
+
+    body {
+      background-color: #f1f5f9;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+    }
+
+    /* Navegación */
+    .admin-nav {
+      background: var(--primary-color) !important;
+      padding: 15px 0;
+      border-bottom: 3px solid var(--secondary-color);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .admin-nav .navbar-brand,
+    .admin-nav .nav-link {
+      color: white !important;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .admin-nav .nav-link:hover {
+      color: #e2e8f0 !important;
+      background-color: var(--secondary-color);
+      border-radius: 6px;
+      padding: 8px 12px !important;
+      text-decoration: none;
+    }
+
+    .admin-nav .nav-link.active {
+      background-color: var(--success-color);
+      border-radius: 6px;
+      padding: 8px 12px !important;
+    }
+
+    /* Títulos */
+    h1, h5 {
+      color: var(--dark-color);
+      font-weight: 700;
+    }
+
+    /* Tarjetas */
+    .card {
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    .card-header {
+      background: var(--primary-color) !important;
+      color: white;
+      border-radius: 12px 12px 0 0 !important;
+      font-weight: 600;
+      border-bottom: 2px solid var(--secondary-color) !important;
+    }
+
+    .card-header h5 {
+      color: white;
+      margin: 0;
+    }
+
+    /* Botones */
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+      border-color: var(--secondary-color);
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background-color: var(--success-color);
+      border-color: var(--success-color);
+      font-weight: 500;
+      border-radius: 8px;
+    }
+
+    .btn-success:hover {
+      background-color: #047857;
+      border-color: #047857;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline-secondary {
+      border-color: var(--neutral-color);
+      color: var(--neutral-color);
+      font-weight: 500;
+      border-radius: 8px;
+    }
+
+    .btn-outline-secondary:hover {
+      background-color: var(--neutral-color);
+      border-color: var(--neutral-color);
+    }
+
+    .btn-outline-light {
+      border-color: rgba(255,255,255,0.5);
+      color: white;
+    }
+
+    .btn-outline-light:hover {
+      background-color: rgba(255,255,255,0.2);
+      border-color: white;
+      color: white;
+    }
+
+    /* Tabla */
+    .table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .table th {
+      background-color: var(--light-color);
+      color: var(--dark-color);
+      font-weight: 600;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .table td {
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+    /* Estados con badges */
+    .badge-estado {
+      font-size: 0.9em;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .estado-IMPRESO {
+      background-color: var(--success-color);
+      color: white;
+    }
+
+    .estado-SOLICITADO {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .estado-CANCELADO {
+      background-color: var(--danger-color);
+      color: white;
+    }
+
+    .estado-NO_DISPONIBLE {
+      background-color: var(--warning-color);
+      color: white;
+    }
+
+    /* Formularios */
+    .form-control, .form-select {
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.25);
+    }
+
+    .form-label {
+      color: var(--dark-color);
+      font-weight: 500;
+    }
+
+    /* Alertas */
+    .alert {
+      border-radius: 12px;
+      border: 2px solid;
+    }
+
+    .alert-success {
+      background-color: #f0fdf4;
+      border-color: var(--success-color);
+      color: #065f46;
+    }
+
+    .alert-danger {
+      background-color: #fef2f2;
+      border-color: var(--danger-color);
+      color: #991b1b;
+    }
+
+    /* Dropdown */
+    .dropdown-menu {
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .dropdown-item {
+      color: var(--dark-color);
+      transition: all 0.3s ease;
+    }
+
+    .dropdown-item:hover {
+      background-color: var(--light-color);
+      color: var(--primary-color);
+    }
+
+    .dropdown-item i {
+      color: var(--primary-color);
+      margin-right: 8px;
+    }
+
+    /* Modales */
+    .modal-content {
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+    }
+
+    .modal-header {
+      background-color: var(--light-color);
+      border-bottom: 2px solid var(--border-color);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .modal-title {
+      color: var(--dark-color);
+      font-weight: 600;
+    }
+
+    .modal-body h6 {
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .modal-body p {
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .modal-body strong {
+      color: var(--dark-color);
+    }
+
+    /* Buscador */
+    #buscadorContainer {
+      background-color: var(--light-color);
+      padding: 15px;
+      border-radius: 8px;
+      border: 2px solid var(--border-color);
+    }
+
+    /* Texto muted personalizado */
+    .text-muted {
+      color: var(--text-muted) !important;
+    }
+
+    .small {
+      color: var(--text-muted);
+    }
+
+    /* Mejoras de accesibilidad */
+    .btn:focus {
+      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.3);
+    }
+
+    .table-responsive {
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .admin-nav .nav-link:hover {
+        padding: 8px !important;
+      }
+
+      .card-header {
+        padding: 15px;
+      }
+
+      .btn-sm {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+      }
+    }
+
+    /* Animaciones suaves */
+    .card, .btn, .form-control, .form-select {
+      transition: all 0.3s ease;
+    }
+
+    /* Hover effects para las filas de la tabla */
+    .table tbody tr {
+      transition: background-color 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+<div class="admin-nav">
+  <div class="container">
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/admin/dashboard">🏥 Panel de Administración</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/medicamentos">💊 Medicamentos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="/admin/historial">📋 Historial</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/dashboard">📊 Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/">🏠 Volver a Inicio</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </div>
+</div>
+
+<div class="container mt-4">
+  <h1 class="mb-4">📋 Historial de Solicitudes</h1>
+
+  <!-- Mensajes de alerta -->
+  <div th:if="${mensaje}" th:class="'alert alert-' + (${tipoMensaje == 'success'} ? 'success' : 'danger') + ' alert-dismissible fade show'" role="alert">
+    <span th:text="${mensaje}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Filtrar Solicitudes</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/admin/historial/filtrar}" method="get" class="row g-3">
+        <div class="col-md-4">
+          <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+          <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" th:value="${fechaInicio}" required>
+        </div>
+        <div class="col-md-4">
+          <label for="fechaFin" class="form-label">Fecha Fin</label>
+          <input type="date" class="form-control" id="fechaFin" name="fechaFin" th:value="${fechaFin}" required>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <div class="d-grid gap-2 w-100">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-filter"></i> Filtrar
+            </button>
+            <a href="/admin/historial" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle"></i> Limpiar Filtros
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de Historial -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Lista de Solicitudes</h5>
+      <div>
+        <a th:href="@{/admin/historial/pdf}" class="btn btn-sm btn-success" target="_blank">
+          <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+        </a>
+        <button class="btn btn-sm btn-outline-light ms-2" id="btnFiltrarTabla">
+          <i class="bi bi-search"></i> Buscar
+        </button>
+      </div>
+    </div>
+    <div class="card-body">
+      <!-- Buscador (inicialmente oculto) -->
+      <div id="buscadorContainer" class="mb-3" style="display: none;">
+        <div class="input-group">
+          <input type="text" id="searchHistorial" class="form-control" placeholder="Buscar en el historial...">
+          <button class="btn btn-outline-secondary" type="button" id="btnCerrarBusqueda">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover" id="tablaHistorial">
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>Medicamento</th>
+            <th>Fecha y Hora</th>
+            <th>Estado</th>
+            <th>Texto Reconocido</th>
+            <th>Acciones</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="solicitud : ${solicitudes}">
+            <td th:text="${solicitud.id}"></td>
+            <td>
+              <strong th:text="${solicitud.medicamento.nombre}"></strong>
+              <div class="small text-muted" th:if="${solicitud.medicamento.descripcion != null}">
+                <span th:text="${#strings.abbreviate(solicitud.medicamento.descripcion, 50)}"></span>
+              </div>
+            </td>
+            <td th:text="${#temporals.format(solicitud.fechaSolicitud, 'dd/MM/yyyy HH:mm')}"></td>
+            <td>
+              <span th:class="'badge badge-estado estado-' + ${solicitud.estado.name()}"
+                    th:text="${solicitud.estado}"></span>
+            </td>
+            <td th:text="${solicitud.textoReconocido}"></td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  Acciones
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#" th:attr="data-id=${solicitud.id}" data-bs-toggle="modal" data-bs-target="#detalleModal">
+                    <i class="bi bi-eye"></i> Ver Detalle
+                  </a></li>
+                  <li><a class="dropdown-item" href="#" th:attr="data-id=${solicitud.id}" data-bs-toggle="modal" data-bs-target="#cambiarEstadoModal">
+                    <i class="bi bi-pencil"></i> Cambiar Estado
+                  </a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(solicitudes)}">
+            <td colspan="6" class="text-center">No hay solicitudes registradas</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Resumen -->
+      <div class="mt-3">
+        <p class="mb-0">
+          <strong>Total de solicitudes:</strong> <span th:text="${totalSolicitudes}">0</span>
+          <span th:if="${filtroAplicado}" class="ms-3 text-muted">
+            <i class="bi bi-filter"></i> Filtro aplicado
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Detalle -->
+<div class="modal fade" id="detalleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detalle de Solicitud</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Información de la Solicitud</h6>
+            <p><strong>ID:</strong> <span id="modalId"></span></p>
+            <p><strong>Fecha:</strong> <span id="modalFecha"></span></p>
+            <p><strong>Estado:</strong> <span id="modalEstado"></span></p>
+            <p><strong>Texto Reconocido:</strong> <span id="modalTexto"></span></p>
+          </div>
+          <div class="col-md-6">
+            <h6>Información del Medicamento</h6>
+            <p><strong>Nombre:</strong> <span id="modalMedicamento"></span></p>
+            <p><strong>Descripción:</strong> <span id="modalDescripcion"></span></p>
+            <p><strong>Stock Actual:</strong> <span id="modalStock"></span></p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Cambiar Estado -->
+<div class="modal fade" id="cambiarEstadoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cambiar Estado de Solicitud</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formCambiarEstado" action="/admin/historial/cambiarEstado" method="post">
+          <input type="hidden" id="solicitudId" name="solicitudId">
+          <div class="mb-3">
+            <label for="nuevoEstado" class="form-label">Nuevo Estado</label>
+            <select class="form-select" id="nuevoEstado" name="nuevoEstado" required>
+              <option value="SOLICITADO">SOLICITADO</option>
+              <option value="IMPRESO">IMPRESO</option>
+              <option value="CANCELADO">CANCELADO</option>
+              <option value="NO_DISPONIBLE">NO DISPONIBLE</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" form="formCambiarEstado" class="btn btn-primary">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Establecer fechas por defecto (último mes)
+  document.addEventListener('DOMContentLoaded', function() {
+    if (!document.getElementById('fechaInicio').value) {
+      const today = new Date();
+      const lastMonth = new Date();
+      lastMonth.setMonth(today.getMonth() - 1);
+
+      document.getElementById('fechaFin').valueAsDate = today;
+      document.getElementById('fechaInicio').valueAsDate = lastMonth;
+    }
+
+    // Búsqueda en tabla
+    document.getElementById('btnFiltrarTabla').addEventListener('click', function() {
+      const buscadorContainer = document.getElementById('buscadorContainer');
+      buscadorContainer.style.display = buscadorContainer.style.display === 'none' ? 'block' : 'none';
+      if (buscadorContainer.style.display === 'block') {
+        document.getElementById('searchHistorial').focus();
+      }
+    });
+
+    document.getElementById('btnCerrarBusqueda').addEventListener('click', function() {
+      document.getElementById('buscadorContainer').style.display = 'none';
+      document.getElementById('searchHistorial').value = '';
+      // Restaurar todas las filas
+      const rows = document.querySelectorAll('#tablaHistorial tbody tr');
+      rows.forEach(row => {
+        row.style.display = '';
+      });
+    });
+
+    document.getElementById('searchHistorial').addEventListener('keyup', function() {
+      const searchText = this.value.toLowerCase();
+      const rows = document.querySelectorAll('#tablaHistorial tbody tr');
+
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchText)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+    // Lógica para el modal de detalle (simulada - en producción se haría con AJAX)
+    document.querySelectorAll('[data-bs-target="#detalleModal"]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        // Aquí normalmente harías una petición AJAX para obtener los detalles
+        // Por ahora, simulamos con datos de la tabla
+        const row = this.closest('tr');
+        document.getElementById('modalId').textContent = row.cells[0].textContent;
+        document.getElementById('modalMedicamento').textContent = row.cells[1].querySelector('strong').textContent;
+        document.getElementById('modalFecha').textContent = row.cells[2].textContent;
+        document.getElementById('modalEstado').textContent = row.cells[3].textContent;
+        document.getElementById('modalTexto').textContent = row.cells[4].textContent;
+        document.getElementById('modalDescripcion').textContent = row.cells[1].querySelector('.small') ?
+                row.cells[1].querySelector('.small').textContent : 'No disponible';
+        document.getElementById('modalStock').textContent = 'Consultando...'; // Simulación
+      });
+    });
+
+    // Lógica para el modal de cambiar estado
+    document.querySelectorAll('[data-bs-target="#cambiarEstadoModal"]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        document.getElementById('solicitudId').value = id;
+
+        // Obtener el estado actual y seleccionarlo en el dropdown
+        const estadoActual = this.closest('tr').cells[3].textContent.trim();
+        const selectEstado = document.getElementById('nuevoEstado');
+        for (let i = 0; i < selectEstado.options.length; i++) {
+          if (selectEstado.options[i].text === estadoActual) {
+            selectEstado.selectedIndex = i;
+            break;
+          }
+        }
+      });
+    });
+  });
+</script>
+</body>
+</html>

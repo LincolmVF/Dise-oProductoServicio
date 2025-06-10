@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #1e40af;        /* Azul principal */
+      --secondary-color: #3b82f6;      /* Azul secundario */
+      --success-color: #059669;        /* Verde */
+      --neutral-color: #6b7280;        /* Gris medio */
+      --light-color: #f8fafc;          /* Gris muy claro */
+      --dark-color: #1e293b;           /* Gris oscuro */
+      --border-color: #e2e8f0;         /* Gris claro para bordes */
+      --text-muted: #64748b;           /* Gris para texto secundario */
+    }
+
+    body {
+      background-color: #f1f5f9;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+    }
+
+    .admin-nav {
+      background: var(--primary-color) !important;
+      padding: 15px 0;
+      border-bottom: 3px solid var(--secondary-color);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .admin-nav .navbar-brand,
+    .admin-nav .nav-link {
+      color: white !important;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .admin-nav .nav-link:hover {
+      color: #e2e8f0 !important;
+      background-color: var(--secondary-color);
+      border-radius: 6px;
+      padding: 8px 12px !important;
+      text-decoration: none;
+    }
+
+    .admin-nav .navbar-brand:hover {
+      color: #e2e8f0 !important;
+    }
+
+    h1 {
+      color: var(--dark-color);
+      font-weight: 700;
+    }
+
+    .stats-card {
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .stats-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      border-color: var(--primary-color);
+    }
+
+    .stats-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+    }
+
+    /* Reemplazar gradientes con colores sólidos */
+    .bg-gradient-primary {
+      background: var(--primary-color) !important;
+      border-color: var(--secondary-color) !important;
+    }
+
+    .bg-gradient-success {
+      background: var(--success-color) !important;
+      border-color: #047857 !important;
+    }
+
+    .bg-gradient-warning {
+      background: var(--neutral-color) !important;
+      border-color: #4b5563 !important;
+    }
+
+    /* Estilos para las tarjetas de acción */
+    .card {
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .card:hover {
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+
+    .card-title {
+      color: var(--dark-color);
+      font-weight: 600;
+    }
+
+    .card-text {
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .card-header {
+      background: var(--light-color) !important;
+      border-bottom: 2px solid var(--border-color) !important;
+      font-weight: 600;
+    }
+
+    .card-header h5 {
+      color: var(--dark-color);
+      margin: 0;
+    }
+
+    /* Botones personalizados */
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+      border-color: var(--secondary-color);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background-color: var(--neutral-color);
+      border-color: var(--neutral-color);
+      font-weight: 500;
+      padding: 12px 30px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      background-color: #4b5563;
+      border-color: #4b5563;
+      transform: translateY(-1px);
+    }
+
+    /* Listas en la información del sistema */
+    .card-body ul {
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .card-body ul li {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+      color: var(--text-muted);
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .card-body ul li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--success-color);
+      font-weight: bold;
+    }
+
+    .card-body ul li:last-child {
+      border-bottom: none;
+    }
+
+    .card-body h6 {
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    /* Contenedor principal */
+    .container {
+      max-width: 1200px;
+    }
+
+    /* Espaciado y tipografía mejorada */
+    .stats-card .card-body h5 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .stats-card .card-body p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      .admin-nav .nav-link:hover {
+        padding: 8px !important;
+      }
+
+      .stats-number {
+        font-size: 2rem;
+      }
+
+      .btn-lg {
+        padding: 10px 25px;
+        font-size: 1rem;
+      }
+    }
+
+    /* Mejoras de accesibilidad */
+    .stats-card:focus-within {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+
+    .btn:focus {
+      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.3);
+    }
+  </style>
+</head>
+<body>
+<div class="admin-nav">
+  <div class="container">
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/admin/dashboard">🏥 Panel de Administración</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/medicamentos">💊 Medicamentos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/historial">📋 Historial</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/">🏠 Volver a Inicio</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </div>
+</div>
+
+<div class="container mt-4">
+  <h1 class="mb-4">📊 Panel de Control</h1>
+
+  <!-- Estadísticas -->
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="card stats-card bg-gradient-primary text-white">
+        <div class="card-body text-center">
+          <div class="stats-number" th:text="${totalMedicamentos ?: 0}">0</div>
+          <h5>Total Medicamentos</h5>
+          <p class="mb-0">Registrados en el sistema</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <div class="card stats-card bg-gradient-success text-white">
+        <div class="card-body text-center">
+          <div class="stats-number" th:text="${totalSolicitudes ?: 0}">0</div>
+          <h5>Total Solicitudes</h5>
+          <p class="mb-0">Procesadas hasta ahora</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <div class="card stats-card bg-gradient-warning text-white">
+        <div class="card-body text-center">
+          <div class="stats-number" th:text="${medicamentosStockBajo ?: 0}">0</div>
+          <h5>Stock Bajo</h5>
+          <p class="mb-0">Medicamentos con menos de 5 unidades</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones Rápidas -->
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">💊 Gestión de Medicamentos</h5>
+          <p class="card-text">Agregar, editar y eliminar medicamentos del sistema. Gestionar stock y nombres alternativos para mejorar el reconocimiento de voz.</p>
+          <a href="/admin/medicamentos" class="btn btn-primary">Gestionar Medicamentos</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">📋 Historial de Solicitudes</h5>
+          <p class="card-text">Ver y exportar el historial completo de solicitudes de medicamentos. Filtrar por fechas y generar reportes en PDF.</p>
+          <a href="/admin/historial" class="btn btn-primary">Ver Historial</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Información del Sistema -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5>ℹ️ Información del Sistema</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6>🎤 Funcionalidades de Voz:</h6>
+              <ul>
+                <li>Reconocimiento de voz en español</li>
+                <li>Síntesis de voz para guiar al usuario</li>
+                <li>Búsqueda inteligente de medicamentos</li>
+                <li>Confirmación por voz y botones</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h6>🔧 Características Técnicas:</h6>
+              <ul>
+                <li>Sistema monolítico con Spring Boot</li>
+                <li>Base de datos MySQL</li>
+                <li>Interfaz accesible con Thymeleaf</li>
+                <li>Exportación de reportes en PDF</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 text-center">
+    <a href="/" class="btn btn-secondary btn-lg">🏠 Volver al Sistema Principal</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
